@@ -1,11 +1,29 @@
 #!/usr/bin/env php
 <?php
 
-use Jamesrezo\TodoList\EisenhowerMethod\Task;
-use Jamesrezo\TodoList\EisenhowerMethod\Who;
+use Jamesrezo\TodoList\EisenhowerMethod\DeadlineQuestion;
+use Jamesrezo\TodoList\EisenhowerMethod\Decision;
+use Jamesrezo\TodoList\EisenhowerMethod\YesNoQuestion;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$task = new Task(Who::You, new DateTimeImmutable(), 'Do it now!');
+$important = new YesNoQuestion('Is it important ?');
+$urgent = new YesNoQuestion('Is it urgent ?');
+$deadline = new DeadlineQuestion('When is the deadline ?');
+
+dump($important->ask());
+$important->setAnswer(true);
+dump('>> yes...');
+dump($urgent->ask());
+$urgent->setAnswer(false);
+dump('>> no...');
+if (Decision::needDeadline($important->getAnwser(), $urgent->getAnwser())) {
+    dump($deadline->ask());
+    $deadline->setAnswer((new DateTimeImmutable())->add(new DateInterval('P7D')));
+    dump('>> in seven(7) days...', $deadline->getAnwser());
+}
+
+$decision = new Decision($important, $urgent, $deadline);
+$task = $decision->compute()->deliver();
 
 dump($task);
