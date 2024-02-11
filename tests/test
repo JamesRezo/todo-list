@@ -1,0 +1,11 @@
+#!/usr/bin/env php
+<?php
+
+use Jamesrezo\TodoList\EisenhowerMethod\Task;
+use Jamesrezo\TodoList\EisenhowerMethod\Who;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$task = new Task(Who::You, new DateTimeImmutable(), 'Do it now!');
+
+dump($task);
