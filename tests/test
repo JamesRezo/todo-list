@@ -1,32 +1,68 @@
 #!/usr/bin/env php
 <?php
 
-use Jamesrezo\TodoList\EisenhowerMethod\Decision;
+use Jamesrezo\TodoList\EisenhowerMethod\TaskFactory;
+use Jamesrezo\TodoList\Todo\TodoList;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$decision = new Decision;
+$todoList = new TodoList();
 
-$i = 0;
-while ($decision->condition()) {
-    if ($i == 0) {
-        dump($decision->askQuestion());
-        $decision->registerAnswer(true);
-        dump('>> yes...');
-    }
+function newTask(TodoList $list, bool $important, bool $urgent, ?DateInterval $deadline = null): TodoList
+{
+    static $count = 1;
 
-    if ($i == 1) {
-        dump($decision->askQuestion());
-        $decision->registerAnswer(false);
-        dump('>> no...');
-    }
+    $taskName = 'Tâche ' . strval($count++);
+    dump($taskName);
 
-    if ($i == 2) {
-        dump($decision->askQuestion());
-        $decision->registerAnswer((new DateTimeImmutable())->add(new DateInterval('P7D')));
-        dump('>> in seven(7) days...');
-    }
-    $i++;
+    $task = TaskFactory::createTask($important, $urgent, $deadline);
+
+    return $list->add($task);
 }
 
-dump($decision->deliver());
+$todoList = newTask($todoList, true, false, new DateInterval('P7D'));
+$todoList = newTask($todoList, true, true);
+$todoList = newTask($todoList, false, true);
+$todoList = newTask($todoList, false, false);
+$todoList = newTask($todoList, false, false);
+
+$mine = $todoList->mine();
+
+$task = $mine->pick();
+dump('first to do', $task);
+$todoList = $todoList->postpone($task, new DateInterval('P8D'));
+dump('+8 days... so, for ' . $task->when->add(new DateInterval('P8D'))->format('Y-m-d H:i:s'));
+dump('new first to do', $todoList->mine()->pick());
+
+$task = $todoList->mine()->pick();
+$todoList->drop($task);
+dump('dropping it');
+dump('new new first to do', $todoList->mine()->pick());
+
+dump('backlog', $todoList->backlog());
+$task = $todoList->backlog()->pick();
+
+$delegateList = new TodoList();
+dump('delegate todo-list before delegation', $delegateList);
+$todoList->delegate($task, $delegateList);
+dump('delegate todo-list after delegation', $delegateList);
+
+try {
+    $task = $todoList->backlog()->pick();
+    $todoList->reprioritize($task, true, true);
+} catch (\Throwable $th) {
+    dump($th->getMessage());
+}
+
+if ($todoList->backlog()->isEmpty()) {
+    dump('Le backlog est vide.');
+}
+
+try {
+    $task = $todoList->backlog(findSomeone: false)->pick();
+    dump('before reprioritizaton', $task);
+    $todoList->reprioritize($task, true, true);
+    dump($todoList->mine()->pick());
+} catch (\Throwable $th) {
+    dump($th->getMessage());
+}
