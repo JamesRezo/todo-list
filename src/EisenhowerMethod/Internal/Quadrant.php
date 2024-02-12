@@ -5,7 +5,7 @@ namespace Jamesrezo\TodoList\EisenhowerMethod\Internal;
 use DateTimeImmutable;
 use Jamesrezo\TodoList\EisenhowerMethod\Exception\MissingDeadlineException;
 use Jamesrezo\TodoList\EisenhowerMethod\Task;
-use Jamesrezo\TodoList\EisenhowerMethod\Who;
+use Jamesrezo\TodoList\EisenhowerMethod\Task\Who;
 
 /**
  * @internal Eisenhower Matrix.

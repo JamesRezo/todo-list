@@ -3,6 +3,7 @@
 namespace Jamesrezo\TodoList\EisenhowerMethod;
 
 use DateTimeImmutable;
+use Jamesrezo\TodoList\EisenhowerMethod\Task\Who;
 
 /**
  * Use Decorators to extend the behavior

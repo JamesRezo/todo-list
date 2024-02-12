@@ -1,6 +1,6 @@
 <?php
 
-namespace Jamesrezo\TodoList\EisenhowerMethod;
+namespace Jamesrezo\TodoList\EisenhowerMethod\Task;
 
 enum Who
 {

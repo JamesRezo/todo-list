@@ -75,8 +75,11 @@ a Decision needs:
 
 ## Opinion
 
+- EisenhowerMethod is the sub-namespace of this business logic domain.
+- Task is an immutable DTO, it SHOULD not be used as a Service by Client code.
+- Who is a DTO also, it SHOULD not be used as a Service by Client code.
 - Quadrant Computing
   - needs 3 parameters : important(bool), urgent(bool), optional deadline(?DateTimeImmutable)
   - returns 1 Task
   - throws a (Business)LogicException if important && !urgent && is_null(deadline)
-  - is @internal
+  - is @internal, thus is placed in Internal sub-namespace
