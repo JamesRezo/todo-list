@@ -30,9 +30,8 @@ final class Quadrant
             }
 
             // Important/Not Urgent quadrant task
-            if (self::needDeadline($important, $urgent) && \is_null($deadline)) {
+            if (\is_null($deadline)) {
                 throw new MissingDeadlineException('Deadline is missging');
-                
             }
 
             return new Task(who:Who::You, when:$deadline, ikeSays:null);
@@ -45,10 +44,5 @@ final class Quadrant
 
         // Unimportant/Not Urgent quadrant task
         return new Task(who:Who::Delegate, when:null, ikeSays:'Just drop it');
-    }
-
-    private static function needDeadline(bool $important, bool $urgent): bool
-    {
-        return $important && !$urgent;
     }
 }

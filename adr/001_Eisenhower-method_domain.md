@@ -39,47 +39,46 @@ When answer is given to all asked questions, the Task can be delivered (the deci
   - ask() Answer to 2 to 3 questions
   - a Quadrant to be computed
   - deliver() the Task
-- Answer/Question
+- Answer/Question (Interaction)
   - YesNo Question
   - Deadline Question
-  - $important is the Answer to the "Is it important" Question
-  - $urgent is is the Answer to the "it urgent" Question
-  - $deadline is is the Answer to the "what is the deadline" Question
+  - $important is the Answer to the "Is it important ?" Question
+  - $urgent is is the Answer to the "Is it urgent ?" Question
+  - $deadline is is the Answer to the "When is the deadline ?" Question
   - Answer is typed according to typed question
     - YesNo Question require bool Answer
     - Deadline Question require DateTimeImmutable Answer
-
-a Decision needs:
-
-- 2 YesNoQuestion to provide $important and $urgent Answer
-- 1 DeadlineQuestion to provide $deadline Answer
+- Interaction with client code
+  - receive questions from Decision in the client code
+  - send answers fom client code to the Decision
 
 - Quadrant
   - Important/Urgent quadrant tasks are done immediately and personally e.g. crises, deadlines, problems.
-    - Deliver Task = Who::You, When::Now, deadline = now() -> Your TodoList
   - Important/Not Urgent quadrant tasks get an end date and are done personally, e.g. relationships, planning, recreation.
-    - Deliver Task = Who::You, When::Later, deadline = now()+Interval -> Your TodoList
   - Unimportant/Urgent quadrant tasks are delegated, e.g. interruptions, meetings, activities.
-    - Deliver Task = Who::Delegate, When::?, deadline = ? -> Someone else's TodoList (find which delegate, then drop Task)
   - Unimportant/Not Urgent quadrant tasks are dropped, e.g. time wasters, pleasant activities, trivia.
-    - Deliver Task = Who::Delegate, When::?, deadline = ? -> Someone else's TodoList (drop the task)
-
-- Interacton to manage interactions with a client (event bus, console command, web controller, ...)
-  - receive questions in the client
-  - send answers
-  - a Decision should be an Interaction with same interface (Decorator)
-
-- Ports
-  - User Side
-    - interface for Decision
 
 ## Opinion
 
+- No dependency other than PHP.
 - EisenhowerMethod is the sub-namespace of this business logic domain.
-- Task is an immutable DTO, it SHOULD not be used as a Service by Client code.
-- Who is a DTO also, it SHOULD not be used as a Service by Client code.
+- Task is an immutable DTO, it SHOULD not be used as a Service by client code.
+- Who is a DTO also, it SHOULD not be used as a Service by client code.
 - Quadrant Computing
   - needs 3 parameters : important(bool), urgent(bool), optional deadline(?DateTimeImmutable)
   - returns 1 Task
   - throws a (Business)LogicException if important && !urgent && is_null(deadline)
   - is @internal, thus is placed in Internal sub-namespace
+- Interaction, Questions & Answers, Decision
+  - need Port(s) for User Side
+    - DecisionInterface
+  - MAY be interactive OR non-interactive (interactive is default, non-interactive Answer is client code resopnsability)
+  - Question MAY be conditional (when/canHandle,then/handle)
+  - Decision is a Question of 3 Questions
+  - Decision is a Chain of Responsability Design Pattern
+    - while questions
+      - pop question
+        - if question->condition()
+          - question->askQuestion()
+          - question->registerAnswer()
+    - loop

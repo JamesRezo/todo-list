@@ -2,59 +2,84 @@
 
 namespace Jamesrezo\TodoList\EisenhowerMethod;
 
-use DateTimeImmutable;
-use Jamesrezo\TodoList\EisenhowerMethod\Internal\Interaction;
+use Jamesrezo\TodoList\EisenhowerMethod\Internal\DeadlineQuestion;
 use Jamesrezo\TodoList\EisenhowerMethod\Internal\Quadrant;
+use Jamesrezo\TodoList\EisenhowerMethod\Internal\QuestionInterface;
+use Jamesrezo\TodoList\EisenhowerMethod\Internal\YesNoQuestion;
 
 class Decision implements DecisionInterface
 {
-    private Interaction $interaction;
+    private Quadrant $quadrant;
 
-    private ?Task $task = null;
+    private array $questions;
+
+    /**
+     * @var QuestionInterface[]
+     */
+    private array $answers = [];
+
+    private string $question = '';
+
+    private ?string $key = null;
 
     public function __construct()
     {
-        $this->interaction = new Interaction;
+        $this->quadrant = new Quadrant;
+
+        $this->questions = [
+            'important' => [YesNoQuestion::class, 'Is it important ?'],
+            'urgent' => [YesNoQuestion::class, 'Is it urgent ?'],
+            'deadline' => [DeadlineQuestion::class, 'When is the deadline ?'],
+        ];
     }
 
-    protected function is(YesNoQuestion $criteria): bool
+    public function condition(): bool
     {
-        return $criteria->getAnwser();
+        $this->key = \array_key_first($this->questions);
+        if (\is_null($this->key)) {
+            return false;
+        }
+
+        $question = \array_shift($this->questions);
+        $class = \array_shift($question);
+        if ($this->key == 'deadline') {
+            $question[] = $this->answers['important']->getAnswer();
+            $question[] = $this->answers['urgent']->getAnswer();
+        }
+        $question = new $class(...$question);
+
+        $this->answers[$this->key] = $question;
+
+        return $question->condition();
     }
 
-    protected function when(DeadlineQuestion $criteria): ?DateTimeImmutable
+    public function askQuestion(): string
     {
-        return $criteria->getAnwser();
+        if (\is_null($this->key)) {
+            return $this->question;
+        }
+
+        return $this->answers[$this->key]->askQuestion();
     }
 
-    public function getInteraction(): Interaction
+    public function registerAnswer($answer): self
     {
-        return $this->interaction;
-    }
-
-    public function compute(): self
-    {
-        $questions = $this->interaction->receiveQuestions();
-        $important = $this->is($questions['important']);
-        $urgent = $this->is($questions['urgent']);
-        $deadline = $this->when($questions['deadline']);
-
-        $this->task = Quadrant::compute($important, $urgent, $deadline);
+        $this->answers[$this->key]->registerAnswer($answer);
 
         return $this;
     }
-    
-    public function deliver(): Task
-    {
-        if (\is_null($this->task)) {
-            throw new \RuntimeException('Quadrant must be computed before delivery of the decision.');
-        }
 
-        return $this->task;
+    public function getAnswer()
+    {
+        return array_map(function (QuestionInterface $question) {
+            return $question->getAnswer();
+        }, $this->answers);
     }
 
-    public function needDeadline(bool $important, bool $urgent): bool
+    public function deliver(): Task
     {
-        return $important && !$urgent;
+        $answer = $this->getAnswer();
+
+        return $this->quadrant->compute(...$answer);
     }
 }

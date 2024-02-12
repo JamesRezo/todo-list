@@ -7,28 +7,26 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $decision = new Decision;
 
-$questions = $decision->getInteraction()->receiveQuestions();
-$important = $questions['important'];
-$urgent = $questions['urgent'];
-$deadline = $questions['deadline'];
-dump($important->ask());
-dump('>> yes...');
-$important->setAnswer(true);
-dump($urgent->ask());
-dump('>> no...');
-$urgent->setAnswer(false);
-if ($decision->needDeadline($important->getAnwser(), $urgent->getAnwser())) {
-    dump($deadline->ask());
-    $deadline->setAnswer((new DateTimeImmutable())->add(new DateInterval('P7D')));
-    dump('>> in seven(7) days...');
+$i = 0;
+while ($decision->condition()) {
+    if ($i == 0) {
+        dump($decision->askQuestion());
+        $decision->registerAnswer(true);
+        dump('>> yes...');
+    }
+
+    if ($i == 1) {
+        dump($decision->askQuestion());
+        $decision->registerAnswer(false);
+        dump('>> no...');
+    }
+
+    if ($i == 2) {
+        dump($decision->askQuestion());
+        $decision->registerAnswer((new DateTimeImmutable())->add(new DateInterval('P7D')));
+        dump('>> in seven(7) days...');
+    }
+    $i++;
 }
-$questions = [
-    'important' => $important,
-    'urgent' => $urgent,
-    'deadline' => $deadline,
-];
-$decision->getInteraction()->sendAnswers($questions);
 
-$task = $decision->compute()->deliver();
-
-dump($task);
+dump($decision->deliver());
