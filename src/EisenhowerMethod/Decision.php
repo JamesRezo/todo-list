@@ -3,16 +3,18 @@
 namespace Jamesrezo\TodoList\EisenhowerMethod;
 
 use DateTimeImmutable;
+use Jamesrezo\TodoList\EisenhowerMethod\Internal\Interaction;
+use Jamesrezo\TodoList\EisenhowerMethod\Internal\Quadrant;
 
-class Decision
+class Decision implements DecisionInterface
 {
+    private Interaction $interaction;
+
     private ?Task $task = null;
 
-    public function __construct(
-        private YesNoQuestion $important,
-        private YesNoQuestion $urgent,
-        private DeadlineQuestion $deadline,
-    ) {
+    public function __construct()
+    {
+        $this->interaction = new Interaction;
     }
 
     protected function is(YesNoQuestion $criteria): bool
@@ -25,38 +27,23 @@ class Decision
         return $criteria->getAnwser();
     }
 
-    public function computeQuadrantAndDeliver(): Task
+    public function getInteraction(): Interaction
     {
-        return $this->compute()->deliver();
+        return $this->interaction;
     }
 
     public function compute(): self
     {
-        $important = $this->important;
-        $urgent = $this->urgent;
-        $deadline = $this->deadline;
+        $questions = $this->interaction->receiveQuestions();
+        $important = $this->is($questions['important']);
+        $urgent = $this->is($questions['urgent']);
+        $deadline = $this->when($questions['deadline']);
 
-        if ($this->is($important)) {
-            if ($this->is($urgent)) {
-                // Important/Urgent quadrant task
-                $this->task = new Task(who:Who::You, when:new DateTimeImmutable(), ikeSays:null);
-            }
-
-            // Important/Not Urgent quadrant task
-            $this->task = new Task(who:Who::You, when:$this->when($deadline), ikeSays:null);
-        } else {
-            if ($this->is($urgent)) {
-                // Unimportant/Urgent quadrant task
-                $this->task = new Task(who:Who::Delegate, when:null, ikeSays:'Find some else, then drop it');
-            } else {
-                // Unimportant/Not Urgent quadrant task
-                $this->task = new Task(who:Who::Delegate, when:null, ikeSays:'Just drop it');
-            }
-        }
+        $this->task = Quadrant::compute($important, $urgent, $deadline);
 
         return $this;
     }
-
+    
     public function deliver(): Task
     {
         if (\is_null($this->task)) {
@@ -66,7 +53,7 @@ class Decision
         return $this->task;
     }
 
-    public static function needDeadline(bool $important, bool $urgent): bool
+    public function needDeadline(bool $important, bool $urgent): bool
     {
         return $important && !$urgent;
     }

@@ -63,3 +63,20 @@ a Decision needs:
     - Deliver Task = Who::Delegate, When::?, deadline = ? -> Someone else's TodoList (find which delegate, then drop Task)
   - Unimportant/Not Urgent quadrant tasks are dropped, e.g. time wasters, pleasant activities, trivia.
     - Deliver Task = Who::Delegate, When::?, deadline = ? -> Someone else's TodoList (drop the task)
+
+- Interacton to manage interactions with a client (event bus, console command, web controller, ...)
+  - receive questions in the client
+  - send answers
+  - a Decision should be an Interaction with same interface (Decorator)
+
+- Ports
+  - User Side
+    - interface for Decision
+
+## Opinion
+
+- Quadrant Computing
+  - needs 3 parameters : important(bool), urgent(bool), optional deadline(?DateTimeImmutable)
+  - returns 1 Task
+  - throws a (Business)LogicException if important && !urgent && is_null(deadline)
+  - is @internal

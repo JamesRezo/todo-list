@@ -1,29 +1,34 @@
 #!/usr/bin/env php
 <?php
 
-use Jamesrezo\TodoList\EisenhowerMethod\DeadlineQuestion;
 use Jamesrezo\TodoList\EisenhowerMethod\Decision;
-use Jamesrezo\TodoList\EisenhowerMethod\YesNoQuestion;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$important = new YesNoQuestion('Is it important ?');
-$urgent = new YesNoQuestion('Is it urgent ?');
-$deadline = new DeadlineQuestion('When is the deadline ?');
+$decision = new Decision;
 
+$questions = $decision->getInteraction()->receiveQuestions();
+$important = $questions['important'];
+$urgent = $questions['urgent'];
+$deadline = $questions['deadline'];
 dump($important->ask());
-$important->setAnswer(true);
 dump('>> yes...');
+$important->setAnswer(true);
 dump($urgent->ask());
-$urgent->setAnswer(false);
 dump('>> no...');
-if (Decision::needDeadline($important->getAnwser(), $urgent->getAnwser())) {
+$urgent->setAnswer(false);
+if ($decision->needDeadline($important->getAnwser(), $urgent->getAnwser())) {
     dump($deadline->ask());
     $deadline->setAnswer((new DateTimeImmutable())->add(new DateInterval('P7D')));
-    dump('>> in seven(7) days...', $deadline->getAnwser());
+    dump('>> in seven(7) days...');
 }
+$questions = [
+    'important' => $important,
+    'urgent' => $urgent,
+    'deadline' => $deadline,
+];
+$decision->getInteraction()->sendAnswers($questions);
 
-$decision = new Decision($important, $urgent, $deadline);
 $task = $decision->compute()->deliver();
 
 dump($task);
