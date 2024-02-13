@@ -6,13 +6,14 @@ use DateInterval;
 use Jamesrezo\TodoList\EisenhowerMethod\Task;
 use Jamesrezo\TodoList\EisenhowerMethod\Task\Who;
 use Jamesrezo\TodoList\EisenhowerMethod\TaskFactory;
+use Jamesrezo\TodoList\EisenhowerMethod\TaskInterface;
 use Jamesrezo\TodoList\Todo\Exception\EmptyTodoListException;
 use Jamesrezo\TodoList\Todo\Exception\NotFoundTaskException;
 
 class TodoList
 {
     public function __construct(
-        /** @var Task[] */
+        /** @var TodoTaskInterface[] */
         private array $tasks = [],
     ) {
     }
@@ -22,9 +23,9 @@ class TodoList
         return empty($this->tasks);
     }
 
-    public function add(Task $task): self
+    public function add(string $name, TaskInterface $task): self
     {
-        $this->tasks[] = $task;
+        $this->tasks[] = new TodoTask($name, $task);
 
         return $this;
     }
@@ -41,7 +42,7 @@ class TodoList
             \asort($tasks);
         }
 
-        return new static(array_values(\array_filter($tasks, function (Task $task) {
+        return new static(array_values(\array_filter($tasks, function (TodoTaskInterface $task) {
             return $task->who == Who::You;
         })));
     }
@@ -59,7 +60,7 @@ class TodoList
             \asort($tasks);
         }
 
-        return new static(\array_values(\array_filter($this->tasks, function (Task $task) use ($findSomeone) {
+        return new static(\array_values(\array_filter($this->tasks, function (TodoTaskInterface $task) use ($findSomeone) {
             $filter = $task->who == Who::Delegate;
             if ($findSomeone) {
                 $filter = $filter && \str_starts_with($task->ikeSays, 'Find');
@@ -74,7 +75,7 @@ class TodoList
      * 
      * @throws EmptyTodoListException
      */
-    public function pick(): Task
+    public function pick(): TodoTaskInterface
     {
         if ($this->isEmpty()) {
             throw new EmptyTodoListException('Cannot pick. TodoList is empty');
@@ -88,14 +89,17 @@ class TodoList
      *
      * @throws NotFoundTaskException
      */
-    public function postpone(Task $task, DateInterval $defer): self
+    public function postpone(TodoTaskInterface $task, DateInterval $defer): self
     {
         $offset = \array_search($task, $this->tasks);
         if ($offset === false) {
             throw new NotFoundTaskException('Task not found');
         }
 
-        $newTask = new Task($task->who, $task->when->add($defer), 'Defered');
+        $newTask = new TodoTask(
+            $task->getName(),
+            new Task($task->who, $task->when->add($defer), 'Defered')
+        );
         $this->tasks = \array_replace($this->tasks, [$offset => $newTask]);
 
         return $this;
@@ -106,7 +110,7 @@ class TodoList
      * 
      * {@see TodoList::drop() Just drop it.}
      */
-    public function complete(Task $task): self
+    public function complete(TodoTaskInterface $task): self
     {
         return $this->drop($task);
     }
@@ -114,7 +118,7 @@ class TodoList
     /**
      * Remove a task from the todo-list
      */
-    public function drop(Task $task): self
+    public function drop(TodoTaskInterface $task): self
     {
         $offset = \array_search($task, $this->tasks);
         if ($offset === false) {
@@ -129,7 +133,7 @@ class TodoList
     /**
      * Transfer a Task to another todo-list
      */
-    public function delegate(Task $task, TodoList $delegate): self
+    public function delegate(TodoTaskInterface $task, TodoList $delegate): self
     {
         $offset = \array_search($task, $this->tasks);
         if ($offset === false) {
@@ -137,7 +141,7 @@ class TodoList
         }
 
         $newTask = new Task(Who::You, null, 'Delegated by a friend');
-        $delegate->add($newTask);
+        $delegate->add($task->getName(), $newTask);
         $this->drop($task);
 
         return $this;
@@ -150,14 +154,14 @@ class TodoList
      *
      * @throws MissingDeadlineException
      */
-    public function reprioritize(Task $task, bool $important, bool $urgent, ?DateInterval $deadline = null): self
+    public function reprioritize(TodoTaskInterface $task, bool $important, bool $urgent, ?DateInterval $deadline = null): self
     {
         $offset = \array_search($task, $this->tasks);
         if ($offset === false) {
             throw new NotFoundTaskException('Task not found');
         }
 
-        $newTask = TaskFactory::createTask($important, $urgent, $deadline);
+        $newTask = new TodoTask($task->getName(), TaskFactory::createTask($important, $urgent, $deadline));
         $this->tasks = \array_replace($this->tasks, [$offset => $newTask]);
 
         return $this;

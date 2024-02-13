@@ -17,7 +17,7 @@ function newTask(TodoList $list, bool $important, bool $urgent, ?DateInterval $d
 
     $task = TaskFactory::createTask($important, $urgent, $deadline);
 
-    return $list->add($task);
+    return $list->add($taskName, $task);
 }
 
 $todoList = newTask($todoList, true, false, new DateInterval('P7D'));
