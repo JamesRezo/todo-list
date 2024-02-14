@@ -16,8 +16,10 @@ class Team
     /** @var User[] */
     public array $members = [];
 
+    public ?Team $superTeam = null;
+
     /** @var Team[] */
-    public array $subTeams = [];
+    public array $units = [];
 
     public function hasMember(User $user): bool
     {
@@ -50,7 +52,7 @@ class Team
      *
      * @see User::leaveTeam()
      */
-    public function remove(User $user): self
+    public function removes(User $user): self
     {
         if ($this->hasMember($user)) {
             $offset = \array_search($user, $this->members);

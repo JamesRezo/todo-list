@@ -38,7 +38,7 @@ class User
     public function leaveTeam(Team $team): self
     {
         if ($this->isIn($team)) {
-            $team->remove($this);
+            $team->removes($this);
             $offset = \array_search($team, $this->teams);
 
             \array_splice($this->teams, $offset, 1);
