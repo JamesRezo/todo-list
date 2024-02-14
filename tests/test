@@ -1,14 +1,91 @@
 #!/usr/bin/env php
 <?php
 
+use Jamesrezo\TodoList\EisenhowerMethod\Task;
 use Jamesrezo\TodoList\EisenhowerMethod\TaskFactory;
+use Jamesrezo\TodoList\Test\Todo\Fixtures\TodoTaskRepository;
+use Jamesrezo\TodoList\Todo\Team;
 use Jamesrezo\TodoList\Todo\TodoList;
+use Jamesrezo\TodoList\Todo\TodoTask;
+use Jamesrezo\TodoList\Todo\User;
+use League\Csv\Reader;
+use League\Csv\Statement;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$todoList = new TodoList();
+$csv = Reader::createFromPath(__DIR__ . '/Todo/Fixtures/data/team.csv', 'r');
+$csv->setHeaderOffset(0);
+$stmt = Statement::create();
+$records = $stmt->process($csv);
+foreach ($records as $record) {
+    // $deadline = $record['deadline'] != '' ?
+    //     (str_starts_with($record['deadline'], 'P') ?
+    //         new DateInterval($record['deadline']) :
+    //         DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s', $record['deadline'])->diff(new DateTimeImmutable())
+    //     ) : null;
+    // $task = TaskFactory::createTask($record['important'] == 'true', $record['urgent'], $deadline);
+    // $todoTask = new TodoTask($record['name'], $task);
+    // $globalBacklog->add($record['name'], $task);
+}
+$csv = Reader::createFromPath(__DIR__ . '/Todo/Fixtures/data/user.csv', 'r');
+$csv->setHeaderOffset(0);
+$stmt = Statement::create();
+$records = $stmt->process($csv);
+foreach ($records as $record) {
+    // $deadline = $record['deadline'] != '' ?
+    //     (str_starts_with($record['deadline'], 'P') ?
+    //         new DateInterval($record['deadline']) :
+    //         DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s', $record['deadline'])->diff(new DateTimeImmutable())
+    //     ) : null;
+    // $task = TaskFactory::createTask($record['important'] == 'true', $record['urgent'], $deadline);
+    // $todoTask = new TodoTask($record['name'], $task);
+    // $globalBacklog->add($record['name'], $task);
+}
+$csv = Reader::createFromPath(__DIR__ . '/Todo/Fixtures/data/team_user.csv', 'r');
+$csv->setHeaderOffset(0);
+$stmt = Statement::create();
+$records = $stmt->process($csv);
+foreach ($records as $record) {
+    // $deadline = $record['deadline'] != '' ?
+    //     (str_starts_with($record['deadline'], 'P') ?
+    //         new DateInterval($record['deadline']) :
+    //         DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s', $record['deadline'])->diff(new DateTimeImmutable())
+    //     ) : null;
+    // $task = TaskFactory::createTask($record['important'] == 'true', $record['urgent'], $deadline);
+    // $todoTask = new TodoTask($record['name'], $task);
+    // $globalBacklog->add($record['name'], $task);
+}
 
-function newTask(TodoList $list, bool $important, bool $urgent, ?DateInterval $deadline = null): TodoList
+$globalBacklog = new TodoList();
+$csv = Reader::createFromPath(__DIR__ . '/Todo/Fixtures/data/todotask.csv', 'r');
+$csv->setHeaderOffset(0);
+$stmt = Statement::create();
+$records = $stmt->process($csv);
+foreach ($records as $record) {
+    $deadline = $record['deadline'] != '' ?
+        (str_starts_with($record['deadline'], 'P') ?
+            new DateInterval($record['deadline']) :
+            DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s', $record['deadline'])->diff(new DateTimeImmutable())
+        ) : null;
+    $task = TaskFactory::createTask($record['important'] == 'true', $record['urgent'], $deadline);
+    $todoTask = new TodoTask($record['name'], $task);
+    $globalBacklog->add($record['name'], $task);
+}
+dump($globalBacklog);
+exit(0);
+
+$user = new User();
+$user->name = 'User';
+$team1 = new Team();
+$team1->name = 'Team 1';
+dump(['user' => $user, 'team' => $team1]);
+$team1->welcomes($user)->choosesAsLeader($user);
+dump(['user' => $user, 'team' => $team1]);
+$user->leaveTeam($team1);
+dump(['user' => $user, 'team' => $team1]);
+exit(0);
+
+function dataTask(TodoList $list, bool $important, bool $urgent, ?DateInterval $deadline = null): TodoList
 {
     static $count = 1;
 
@@ -20,11 +97,11 @@ function newTask(TodoList $list, bool $important, bool $urgent, ?DateInterval $d
     return $list->add($taskName, $task);
 }
 
-$todoList = newTask($todoList, true, false, new DateInterval('P7D'));
-$todoList = newTask($todoList, true, true);
-$todoList = newTask($todoList, false, true);
-$todoList = newTask($todoList, false, false);
-$todoList = newTask($todoList, false, false);
+$todoList = dataTask($todoList, true, false, new DateInterval('P7D'));
+$todoList = dataTask($todoList, true, true);
+$todoList = dataTask($todoList, false, true);
+$todoList = dataTask($todoList, false, false);
+$todoList = dataTask($todoList, false, false);
 
 $mine = $todoList->mine();
 
