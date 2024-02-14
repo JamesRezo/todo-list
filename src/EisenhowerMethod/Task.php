@@ -5,6 +5,7 @@ namespace Jamesrezo\TodoList\EisenhowerMethod;
 use DateTimeImmutable;
 use Jamesrezo\TodoList\EisenhowerMethod\Task\Who;
 use Jamesrezo\TodoList\EisenhowerMethod\Exception\UnexpectedPropertyException;
+use Jamesrezo\TodoList\EisenhowerMethod\Task\IkeSays;
 
 /**
  * Use Decorators to extend the behavior
@@ -16,7 +17,7 @@ final readonly class Task implements TaskInterface
     public function __construct(
         private Who $who,
         private ?DateTimeImmutable $when,
-        private ?string $ikeSays,
+        private ?IkeSays $ikeSays,
     ) {
     }
 

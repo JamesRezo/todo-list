@@ -98,7 +98,7 @@ class TodoList
 
         $newTask = new TodoTask(
             $task->getName(),
-            new Task($task->who, $task->when->add($defer), 'Defered')
+            new Task($task->who, $task->when->add($defer), $task->ikeSays)
         );
         $this->tasks = \array_replace($this->tasks, [$offset => $newTask]);
 
@@ -140,7 +140,7 @@ class TodoList
             throw new NotFoundTaskException('Task not found');
         }
 
-        $newTask = new Task(Who::You, null, 'Delegated by a friend');
+        $newTask = new Task(Who::You, null, null);
         $delegate->add($task->getName(), $newTask);
         $this->drop($task);
 

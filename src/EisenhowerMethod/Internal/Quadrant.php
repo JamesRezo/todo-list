@@ -5,6 +5,7 @@ namespace Jamesrezo\TodoList\EisenhowerMethod\Internal;
 use DateTimeImmutable;
 use Jamesrezo\TodoList\EisenhowerMethod\Exception\MissingDeadlineException;
 use Jamesrezo\TodoList\EisenhowerMethod\Task;
+use Jamesrezo\TodoList\EisenhowerMethod\Task\IkeSays;
 use Jamesrezo\TodoList\EisenhowerMethod\Task\Who;
 
 /**
@@ -39,10 +40,10 @@ final class Quadrant
 
         if ($urgent) {
             // Unimportant/Urgent quadrant task
-            return new Task(who:Who::Delegate, when:null, ikeSays:'Find someone else, then drop it');
+            return new Task(who:Who::Delegate, when:null, ikeSays:IkeSays::FindSomeone);
         }
 
         // Unimportant/Not Urgent quadrant task
-        return new Task(who:Who::Delegate, when:null, ikeSays:'Just drop it');
+        return new Task(who:Who::Delegate, when:null, ikeSays:IkeSays::DropIt);
     }
 }
